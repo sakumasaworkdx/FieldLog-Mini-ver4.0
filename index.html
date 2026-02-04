@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>FieldLog v4.0 Ultra</title>
+  <title>FieldLog v4.1 Final</title>
   <style>
     body { background:#000; color:#fff; font-family:sans-serif; margin:0; padding:10px; }
     .card { background:#111; border:1px solid #333; padding:15px; border-radius:12px; margin-bottom:15px; }
@@ -15,13 +15,14 @@
     .input-field { width:100%; background:#222; color:#fff; border:1px solid #444; padding:14px; border-radius:8px; margin-bottom:10px; font-size:16px; box-sizing:border-box; }
     table { width:100%; border-collapse:collapse; font-size:12px; }
     td { padding:10px; border-bottom:1px solid #333; }
+    summary { cursor:pointer; padding:10px; background:#222; border-radius:8px; color:#aaa; margin-bottom:10px; }
   </style>
 </head>
 <body>
   <main style="max-width:500px; margin:0 auto;">
     <details class="card">
-      <summary style="cursor:pointer; color:#aaa;">⚙️ CSV読込 (A:地点, B:小区分, C:項目)</summary>
-      <input id="listCsvInput" type="file" accept=".csv" style="margin-top:10px; width:100%;">
+      <summary>⚙️ CSV読込 (A:地点, B:小区分, C:項目)</summary>
+      <input id="listCsvInput" type="file" accept=".csv" style="width:100%;">
     </details>
 
     <section class="card">
@@ -61,8 +62,8 @@
       <table id="list"></table>
     </section>
   </main>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-XMV0XIs27v6M7pMTL7yVofz8E/D9p9Odc6A16W4V9p2H8H3W6VbE2y1YvTz1m0M8m8Y4T/8Y+T/8Y+T/8Y+T/w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  
+  <script src="./jszip.min.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
