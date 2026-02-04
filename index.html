@@ -3,22 +3,24 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <link rel="stylesheet" href="./styles.css?v=113" />
-  <title>FieldLog v3.8 Offline</title>
+  <link rel="stylesheet" href="./styles.css?v=115" />
+  <title>FieldLog v3.9 Final</title>
   <style>
     .photo-btn { background: #00bb55 !important; height: 100px !important; }
     .geo-btn { background: #007bff !important; height: 85px !important; }
     .btn-save { background: #dc3545 !important; height: 90px !important; font-size: 24px !important; }
     .btn-main { width: 100%; border-radius: 12px; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
-    .geo-info-box { background: #000; color: #00ff00; padding: 15px; border-radius: 8px; font-family: monospace; line-height: 1.8; border: 1px solid #333; margin-bottom: 15px; }
-    .input-field { width:100%; background:#222; color:#fff; border:1px solid #444; padding:14px; border-radius:8px; margin-bottom:10px; font-size:16px; }
+    .geo-info-box { background: #000; color: #00ff00; padding: 15px; border-radius: 8px; font-family: monospace; line-height: 1.6; border: 1px solid #333; margin-bottom: 15px; }
+    .input-field { width:100%; background:#222; color:#fff; border:1px solid #444; padding:14px; border-radius:8px; margin-bottom:10px; font-size: 16px; box-sizing: border-box; }
+    summary { cursor: pointer; padding: 10px; font-weight: bold; color: #fff; background: #222; border-radius: 8px; }
   </style>
 </head>
-<body style="background:#000; color:#fff; padding:10px;">
+<body style="background:#000; color:#fff; padding:10px; margin:0;">
   <main class="container" style="max-width:500px; margin:0 auto;">
-    <details class="card" style="background:#111; border:1px solid #333; padding:10px; border-radius:10px; margin-bottom:15px;">
-      <summary style="cursor:pointer;">⚙️ CSV読み込み</summary>
-      <input id="listCsvInput" type="file" accept=".csv" style="margin-top:10px; width:100%;" />
+    
+    <details class="card" style="background:#111; border:1px solid #333; padding:5px; border-radius:10px; margin-bottom:15px;">
+      <summary>⚙️ CSV読み込み</summary>
+      <input id="listCsvInput" type="file" accept=".csv" style="margin-top:10px; width:100%; color: #fff;" />
     </details>
 
     <section class="card">
@@ -48,18 +50,21 @@
       <select id="selSubLocation" class="input-field"><option value="">小区分を選択</option></select>
       <select id="selItem" class="input-field"><option value="">項目を選択</option></select>
       <textarea id="memo" class="input-field" style="height:80px;" placeholder="備考"></textarea>
+      
       <button id="btnSave" class="btn-save btn-main" type="button">💾 データを保存</button>
     </section>
 
-    <section class="card" style="margin-top:15px; border-top:1px solid #333;">
-      <div style="display:flex; justify-content:space-between; padding:10px 0;">
-        <button id="btnDownloadAll" style="background:#007bff; color:white; border:none; padding:10px; border-radius:5px;">📦 一括DL</button>
-        <button id="btnDeleteAll" style="background:#600; color:white; border:none; padding:10px; border-radius:5px;">⚠️ 全削除</button>
+    <section class="card" style="margin-top:20px;">
+      <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+        <button id="btnDownloadAll" style="background:#007bff; color:white; border:none; padding:12px; border-radius:8px; font-weight:bold;">📦 一括DL</button>
+        <button id="btnDeleteAll" style="background:#600; color:white; border:none; padding:12px; border-radius:8px;">⚠️ 全削除</button>
       </div>
-      <table style="width:100%; font-size:12px;"><tbody id="list"></tbody></table>
+      <table style="width:100%; font-size:12px; color:#ccc; border-collapse: collapse;">
+        <tbody id="list"></tbody>
+      </table>
     </section>
   </main>
   <script src="../jszip.min.js"></script>
-  <script src="./app.js?v=113"></script>
+  <script src="./app.js?v=115"></script>
 </body>
 </html>
