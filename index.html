@@ -1,63 +1,33 @@
-<!doctype html>
-<html lang="ja">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <link rel="stylesheet" href="./styles.css" />
-  <link rel="manifest" href="./manifest.webmanifest" />
-  <title>FieldLog v2.0 Final Rebuild</title>
-</head>
-<body>
-  <div class="container">
-    <div class="card">
-      <div id="swState" style="font-size:10px; color:gray;"></div>
-      <button id="btnInstall" style="display:none;">インストール</button>
-      
-      <div style="background:#f0f7ff; padding:10px; border-radius:8px; border:1px solid #bcd; margin-bottom:15px;">
-        <input type="file" id="listCsvInput" accept=".csv" style="font-size:12px; width:100%;">
-        <div style="display:flex; justify-content:space-between; margin-top:5px;">
-          <span id="listStatus" style="font-size:10px;"></span>
-          <button id="btnClearLists" style="font-size:10px;">リスト消去</button>
-        </div>
+<div class="card" style="padding: 10px;">
+  <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 8px; margin-bottom: 10px;">
+    <div style="background: #222; color: #0f0; padding: 12px; border-radius: 6px; text-align: center;">
+      <div style="font-size: 10px; color: #888;">方位 / 方向</div>
+      <div style="font-size: 26px; font-weight: bold;">
+        <span id="heading">-</span>° <span id="direction" style="font-size: 18px; margin-left:5px;">-</span>
       </div>
-
-      <button id="btnGeo" class="btn-main geo-btn" style="background:#4caf50; color:white; width:100%; padding:15px; border:none; border-radius:8px; font-weight:bold;">📍 GPS・方位取得</button>
-      
-      <div class="geo-info" style="font-size:12px; background:#eee; padding:10px; border-radius:5px; margin:10px 0;">
-        緯度: <span id="lat">-</span><br>
-        経度: <span id="lng">-</span><br>
-        精度: <span id="acc">-</span> m<br>
-        <strong>方位: <span id="heading">-</span>°</strong> </div>
-
-      <label class="btn-main photo-btn" style="background:#2196f3; color:white; display:block; text-align:center; padding:15px; border-radius:8px; cursor:pointer;">
-        📷 写真撮影 / 選択
-        <input id="photoInput" type="file" accept="image/*" capture="environment" style="display:none;">
-      </label>
-      <img id="preview" style="max-width:100%; margin:10px 0; border-radius:8px;">
-      <div style="font-size:11px; color:#666; margin-bottom:10px;">
-        生成名: <span id="autoName">-</span> / 時刻: <span id="ts">-</span>
-      </div>
-
-      <select id="selLocation" class="input-field" style="width:100%; padding:10px; margin-bottom:5px;"></select>
-      <select id="selLocation2" class="input-field" style="width:100%; padding:10px; margin-bottom:5px;"></select>
-      <select id="selItem" class="input-field" style="width:100%; padding:10px; margin-bottom:5px;"></select>
-      <textarea id="memo" class="input-field" placeholder="備考" style="width:100%; height:50px; padding:10px; margin-bottom:5px;"></textarea>
-      <textarea id="memo2" class="input-field" placeholder="備考2" style="width:100%; height:50px; padding:10px; margin-bottom:10px;"></textarea>
-      
-      <button id="btnSave" style="width:100%; padding:15px; background:#ff9800; color:white; border:none; border-radius:8px; font-weight:bold;">💾 データを保存</button>
     </div>
-
-    <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <strong>📊 履歴 (<span id="count">0</span>件)</strong>
-        <button id="btnExportZip" style="background:#2196f3; color:white; border:none; padding:8px 12px; border-radius:5px; font-size:12px;">📦 ZIP出力</button>
-      </div>
-      <div id="exportStatus" style="font-size:11px; color:blue; margin:5px 0;"></div>
-      <div id="list" style="margin-top:10px; border-top:1px solid #eee;"></div>
-      <button id="btnClear" style="margin-top:20px; width:100%; background:#f44336; color:white; border:none; padding:10px; border-radius:8px;">🚨 全データ削除</button>
+    <div style="background: #222; color: #0f0; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 11px;">
+      精度: <span id="acc">-</span>m<br>
+      LAT: <span id="lat">-</span><br>
+      LNG: <span id="lng">-</span>
     </div>
   </div>
 
-  <script src="./app.js"></script>
-</body>
-</html>
+  <button id="btnGeo" class="btn-main geo-btn" style="width:100%; padding:12px; margin-bottom:12px; background:#28a745; color:white; border:none; border-radius:6px; font-weight:bold;">📍 位置・方位を更新</button>
+
+  <div style="display: flex; gap: 10px; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+    <label style="flex: 1; background:#007bff; color:white; padding:15px 5px; border-radius:6px; cursor:pointer; text-align:center; font-weight:bold; font-size:14px;">
+      📷 撮影
+      <input id="photoInput" type="file" accept="image/*" capture="environment" style="display:none;">
+    </label>
+    
+    <div style="width: 120px; height: 90px; border: 1px solid #ccc; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 4px;">
+      <img id="preview" style="max-width: 100%; max-height: 100%; object-fit: contain; display: none;">
+      <span id="noPhoto" style="font-size: 10px; color: #999;">未撮影</span>
+    </div>
+  </div>
+  
+  <div style="font-size:10px; color:#666; margin: 8px 0;">
+    Name: <span id="autoName">-</span> / <span id="ts">-</span>
+  </div>
+</div>
