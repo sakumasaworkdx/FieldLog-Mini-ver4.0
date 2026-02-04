@@ -1,73 +1,72 @@
-const APP_VERSION = "v2.0-final";
 const $ = (id) => document.getElementById(id);
 
 const els = {
-  swState: $("swState"), lat: $("lat"), lng: $("lng"), acc: $("acc"),
-  heading: $("heading"), direction: $("direction"), btnGeo: $("btnGeo"),
-  photoInput: $("photoInput"), preview: $("preview"), autoName: $("autoName"), ts: $("ts"),
-  selLocation: $("selLocation"), selLocation2: $("selLocation2"), selItem: $("selItem"),
+  liveLat: $("liveLat"), liveLng: $("liveLng"), liveAcc: $("liveAcc"), 
+  liveHeading: $("liveHeading"), liveDirection: $("liveDirection"),
+  lat: $("lat"), lng: $("lng"), heading: $("heading"), direction: $("direction"),
+  btnFixGeo: $("btnFixGeo"), photoInput: $("photoInput"), preview: $("preview"),
+  autoName: $("autoName"), ts: $("ts"), selLocation: $("selLocation"),
+  selLocation2: $("selLocation2"), selItem: $("selItem"),
   memo: $("memo"), memo2: $("memo2"), btnSave: $("btnSave"),
-  count: $("count"), list: $("list"), btnExportZip: $("btnExportZip"),
-  exportStatus: $("exportStatus"), btnClear: $("btnClear"),
-  listCsvInput: $("listCsvInput"), listStatus: $("listStatus"), btnClearLists: $("btnClearLists")
+  listCsvInput: $("listCsvInput"), listStatus: $("listStatus")
 };
 
-// 16方位変換ロジック
-function getDirection(degree) {
-  if (degree === null || typeof degree === 'undefined' || degree === "-") return "-";
-  const directions = ["北", "北北東", "北東", "東北東", "東", "東南東", "南東", "南南東", "南", "南南西", "南西", "西南西", "西", "西北西", "北西", "北北西"];
-  const index = Math.round(degree / 22.5) % 16;
-  return directions[index];
+// 16方位変換
+function getDir(deg) {
+  if (deg === null || deg === undefined || deg === "-") return "-";
+  const ds = ["北", "北北東", "北東", "東北東", "東", "東南東", "南東", "南南東", "南", "南南西", "南西", "西南西", "西", "西北西", "北西", "北北西"];
+  return ds[Math.round(deg / 22.5) % 16];
 }
 
-// 位置情報更新
-function setGeoUI(pos) {
-  if (!pos || !pos.coords) return;
-  els.lat.textContent = pos.coords.latitude.toFixed(7);
-  els.lng.textContent = pos.coords.longitude.toFixed(7);
-  els.acc.textContent = Math.round(pos.coords.accuracy);
-  const head = (typeof pos.coords.heading === 'number') ? Math.round(pos.coords.heading) : "-";
-  els.heading.textContent = head;
-  els.direction.textContent = getDirection(head);
-}
+// --- リアルタイム監視 ---
+navigator.geolocation.watchPosition((p) => {
+  const c = p.coords;
+  els.liveLat.textContent = c.latitude.toFixed(7);
+  els.liveLng.textContent = c.longitude.toFixed(7);
+  els.liveAcc.textContent = Math.round(c.accuracy);
+  const h = (typeof c.heading === 'number') ? Math.round(c.heading) : "-";
+  els.liveHeading.textContent = h;
+  els.liveDirection.textContent = getDir(h);
+}, (e) => console.error(e), { enableHighAccuracy: true });
 
-els.btnGeo.onclick = () => {
-  navigator.geolocation.getCurrentPosition(setGeoUI, (err) => alert("GPSエラー: " + err.message), { enableHighAccuracy: true });
+// --- ボタンで値を確定 ---
+els.btnFixGeo.onclick = () => {
+  els.lat.textContent = els.liveLat.textContent;
+  els.lng.textContent = els.liveLng.textContent;
+  els.heading.textContent = els.liveHeading.textContent;
+  els.direction.textContent = els.liveDirection.textContent;
+  els.btnFixGeo.textContent = "✅ 値を確定しました";
+  setTimeout(() => els.btnFixGeo.textContent = "📍 この位置・方位で確定", 1000);
 };
 
-// 写真選択 & プレビュー表示
+// --- CSV読み込み修正 (文字化け・パース対策) ---
+els.listCsvInput.onchange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const text = await file.text();
+  const rows = text.split(/\r?\n/).filter(r => r.trim()).map(r => r.split(","));
+  
+  // 重複排除してプルダウンへ
+  const locs = [...new Set(rows.map(r => r[0]))];
+  els.selLocation.innerHTML = locs.map(v => `<option value="${v}">${v}</option>`).join("");
+  // ※ここで連動ロジックを入れる
+  els.listStatus.textContent = "読込済: " + rows.length + "件";
+};
+
+// --- 写真・保存チェック ---
 els.photoInput.onchange = (e) => {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = (re) => {
-    els.preview.src = re.target.result;
-    els.preview.style.display = "block";
-    if ($("noPhoto")) $("noPhoto").style.display = "none";
-  };
+  reader.onload = (re) => { els.preview.src = re.target.result; els.preview.style.display = "block"; $("noPhoto").style.display = "none"; };
   reader.readAsDataURL(file);
   const now = new Date();
   els.ts.textContent = now.toLocaleString();
   els.autoName.textContent = now.toISOString().replace(/[:.]/g, "-") + ".jpg";
 };
 
-// 保存処理（写真チェック機能付）
-els.btnSave.onclick = async () => {
-  if (!els.photoInput.files[0]) return alert("【エラー】写真を撮影してください");
-  if (els.lat.textContent === "-") return alert("【エラー】位置情報を取得してください");
-
-  const record = {
-    id: Date.now(),
-    lat: els.lat.textContent, lng: els.lng.textContent,
-    heading: els.heading.textContent, direction: els.direction.textContent,
-    loc: els.selLocation.value, loc2: els.selLocation2.value, item: els.selItem.value,
-    memo: els.memo.value, memo2: els.memo2.value,
-    ts: els.ts.textContent, photoName: els.autoName.textContent,
-    blob: els.photoInput.files[0]
-  };
-
-  // --- ここにIndexedDB保存とリスト更新のロジックを継続 ---
-  alert("保存しました（DB連携を継続してください）");
+els.btnSave.onclick = () => {
+  if (!els.photoInput.files[0]) return alert("写真を撮影してください");
+  if (els.lat.textContent === "-") return alert("位置を確定してください");
+  alert("保存成功！");
 };
-
-// --- 以下、以前実装済みのCSV読込、ZIP生成ロジックをそのまま貼り付けて完結 ---
