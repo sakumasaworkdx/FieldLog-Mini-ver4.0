@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <link rel="stylesheet" href="./styles.css" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <title>Offline Survey v2.0</title>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div id="swState" style="font-size:10px; color:gray;"></div>
+      <button id="btnInstall" style="display:none;">インストール</button>
+      <div style="background:#eee; padding:10px; border-radius:8px; margin-bottom:10px;">
+        <input type="file" id="listCsvInput" accept=".csv">
+        <button id="btnClearLists">リスト消去</button>
+        <div id="listStatus" style="font-size:10px;"></div>
+      </div>
+      <button id="btnGeo" class="btn-main geo-btn" style="width:100%; padding:15px; background:#4caf50; color:white; border:none; border-radius:8px; font-weight:bold;">GPS取得</button>
+      <div class="geo-info" style="font-size:11px; margin:10px 0;">
+        緯度:<span id="lat">-</span> 経度:<span id="lng">-</span> 精度:<span id="acc">-</span>m
+      </div>
+      <label class="btn-main photo-btn" style="display:block; width:100%; padding:15px; background:#2196f3; color:white; text-align:center; border-radius:8px; cursor:pointer;">
+        📷 写真撮影 / 選択
+        <input id="photoInput" type="file" accept="image/*" capture="environment" style="display:none;">
+      </label>
+      <img id="preview" style="max-width:100%; margin:10px 0;">
+      <div style="font-size:11px; color:#666;">生成名: <span id="autoName">-</span> / 時刻: <span id="ts">-</span></div>
+      <select id="selLocation" class="input-field" style="width:100%; padding:10px; margin:5px 0;"></select>
+      <select id="selLocation2" class="input-field" style="width:100%; padding:10px; margin:5px 0;"></select>
+      <select id="selItem" class="input-field" style="width:100%; padding:10px; margin:5px 0;"></select>
+      <textarea id="memo" class="input-field" placeholder="備考" style="width:100%; padding:10px; margin:5px 0;"></textarea>
+      <textarea id="memo2" class="input-field" placeholder="備考2" style="width:100%; padding:10px; margin:5px 0;"></textarea>
+      <button id="btnSave" style="width:100%; padding:15px; background:#ff9800; color:white; border:none; border-radius:8px; font-weight:bold;">💾 データを保存</button>
+    </div>
+    <div class="card">
+      <strong>📊 履歴 (<span id="count">0</span>件)</strong>
+      <button id="btnExportZip" style="float:right; background:#2196f3; color:white; border:none; padding:5px 10px; border-radius:4px;">📦 ZIP出力</button>
+      <div id="exportStatus" style="font-size:10px; color:blue;"></div>
+      <div id="list"></div>
+      <button id="btnClear" style="margin-top:20px; width:100%; background:#f44336; color:white; border:none; padding:10px; border-radius:8px;">全データ削除</button>
+    </div>
+  </div>
+  <script src="./app.js"></script>
+</body>
+</html>
