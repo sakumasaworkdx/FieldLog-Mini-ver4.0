@@ -3,72 +3,76 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <link rel="stylesheet" href="./styles.css" />
-  <link rel="manifest" href="./manifest.webmanifest" />
-  <title>FieldLog v2.0 Final</title>
+  <title>Offline Survey v2.0 Professional</title>
   <style>
-    body { font-family: sans-serif; background: #e9ecef; margin: 0; }
-    .container { padding: 10px; max-width: 500px; margin: auto; }
-    .card { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
-    
-    /* CSVエリア：高コントラスト */
-    .config-area { background: #0d47a1; color: #ffffff; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
-    .config-area input { background: #fff; color: #333; margin-top: 8px; width: 100%; border-radius: 4px; padding: 5px; }
-
-    /* リアルタイム座標エリア（黒地に緑） */
-    .display-panel { display: grid; grid-template-columns: 1.2fr 1fr; gap: 8px; margin-bottom: 10px; }
-    .display-box { background: #000; color: #00ff00; padding: 12px; border-radius: 6px; font-family: monospace; border: 2px solid #444; }
-    
-    .btn-main { display: block; width: 100%; padding: 18px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
-    .fix-btn { background: #28a745; color: white; margin-bottom: 15px; box-shadow: 0 4px #1e7e34; }
-    .fix-btn:active { transform: translateY(2px); box-shadow: none; }
-
-    .photo-area { display: flex; gap: 10px; align-items: center; background: #f1f3f5; padding: 10px; border-radius: 8px; border: 1px solid #ced4da; }
-    #preview { width: 120px; height: 90px; object-fit: contain; background: #fff; border: 1px solid #adb5bd; display: none; }
-    .input-field { width: 100%; padding: 12px; margin: 6px 0; border: 2px solid #ced4da; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+    body { font-family: sans-serif; background: #e9ecef; margin: 0; padding: 10px; }
+    .card { background: #fff; border-radius: 12px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); margin-bottom:15px; }
+    /* CSV読込：濃い青に白文字（視認性重視） */
+    .config-panel { background: #0d47a1; color: #fff; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
+    /* リアルタイム表示：黒に緑（常に動く） */
+    .live-display { background: #000; color: #0f0; padding: 12px; border-radius: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-family: monospace; border: 2px solid #444; }
+    .val-large { font-size: 24px; font-weight: bold; }
+    .btn { display: block; width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; }
+    .btn-fix { background: #28a745; color: #fff; }
+    .btn-save { background: #ff9800; color: #fff; font-size: 20px; }
+    /* 写真プレビュー：適正サイズ横並び */
+    .photo-row { display: flex; gap: 10px; align-items: center; background: #f1f3f5; padding: 10px; border-radius: 8px; margin: 10px 0; }
+    #preview { width: 120px; height: 90px; object-fit: contain; border: 1px solid #adb5bd; background: #fff; display: none; }
+    .field { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="card">
-      <div id="swState" style="font-size:10px; color:#666;"></div>
-      
-      <div class="config-area">
-        <strong style="font-size:14px;">📄 地点/項目リスト読込(CSV)</strong>
-        <input type="file" id="listCsvInput" accept=".csv">
-        <div style="display:flex; justify-content:space-between; margin-top:8px;">
-          <span id="listStatus" style="font-size:12px; color:#ffeb3b; font-weight:bold;">未読込</span>
-          <button id="btnClearLists" style="font-size:11px; padding:4px 8px; background:#f44336; color:white; border:none; border-radius:4px;">リスト消去</button>
-        </div>
-      </div>
 
-      <div class="display-panel">
-        <div class="display-box" style="text-align: center;">
-          <div style="font-size: 10px; color: #aaa;">方位 (リアルタイム)</div>
-          <div style="font-size: 24px; font-weight: bold;"><span id="liveHeading">-</span>°</div>
-          <div id="liveDirection" style="font-size: 18px; color: #fff; margin-top: 5px;">-</div>
-        </div>
-        <div class="display-box" style="font-size: 11px; line-height: 1.3;">
-          精度: <span id="liveAcc">-</span>m<br>
-          LAT: <span id="liveLat">-</span><br>
-          LNG: <span id="liveLng">-</span>
-        </div>
-      </div>
-      
-      <button id="btnFixGeo" class="btn-main fix-btn">📍 この位置・方位で確定</button>
+<div class="card">
+  <div class="config-panel">
+    <strong style="font-size:14px;">📄 地点/項目リスト読込(CSV)</strong>
+    <input type="file" id="csvIn" accept=".csv" style="width:100%; margin-top:8px; background:#fff;">
+    <div id="csvSt" style="font-size:12px; color:#ffeb3b; margin-top:5px; font-weight:bold;">未読込</div>
+  </div>
 
-      <div style="font-size:11px; color:#c62828; margin-bottom:10px; font-weight:bold;">
-        確定値：<span id="lat">-</span>, <span id="lng">-</span> (<span id="heading">-</span>° <span id="direction">-</span>)
-      </div>
+  <div class="live-display">
+    <div style="text-align:center;">
+      方位<br><span id="h_live" class="val-large">-</span>°<br><span id="d_live" style="color:#fff;">-</span>
+    </div>
+    <div style="font-size:12px;">
+      精度: <span id="a_live">-</span>m<br>
+      緯度: <span id="la_live">-</span><br>
+      経度: <span id="lo_live">-</span>
+    </div>
+  </div>
+  
+  <button id="btnFix" class="btn btn-fix">📍 この位置・方位で確定</button>
 
-      <div class="photo-area">
-        <label style="flex: 1; background:#007bff; color:white; padding:20px 10px; border-radius:8px; cursor:pointer; text-align:center; font-weight:bold;">
-          📷 写真撮影
-          <input id="photoInput" type="file" accept="image/*" capture="environment" style="display:none;">
-        </label>
-        <img id="preview">
-        <div id="noPhoto" style="width:120px; text-align:center; font-size:11px; color:#adb5bd;">未撮影</div>
-      </div>
+  <div id="fixedDisplay" style="font-size:11px; color:#d32f2f; margin-top:5px; font-weight:bold;">
+    確定値: <span id="la_val">-</span>, <span id="lo_val">-</span> (<span id="h_val">-</span>°)
+  </div>
 
-      <div style="font-size:11px; color:#444; margin: 10px 0;">
-        ファイル名: <span id="autoName">-
+  <div class="photo-row">
+    <label style="flex:1; background:#007bff; color:#fff; padding:20px 10px; border-radius:8px; text-align:center; font-weight:bold; cursor:pointer;">
+      📷 写真撮影
+      <input type="file" id="pIn" accept="image/*" capture="environment" style="display:none;">
+    </label>
+    <img id="preview">
+    <div id="noPhoto" style="width:120px; text-align:center; font-size:11px; color:#999;">未撮影</div>
+  </div>
+  
+  <div id="info" style="font-size:10px; color:#666; margin-bottom:10px;">ファイル名: - / 時刻: -</div>
+
+  <select id="s1" class="field"><option value="">地点を選択(CSVを読込)</option></select>
+  <select id="s2" class="field"></select>
+  <select id="s3" class="field"></select>
+  <textarea id="m1" class="field" placeholder="備考"></textarea>
+  <textarea id="m2" class="field" placeholder="備考2"></textarea>
+  
+  <button id="btnSave" class="btn btn-save">💾 データを保存</button>
+</div>
+
+<div class="card">
+  <strong>📊 履歴 (<span id="count">0</span>件)</strong>
+  <div id="list" style="margin-top:10px; border-top:1px solid #eee; max-height:200px; overflow-y:auto;"></div>
+  <button id="btnExport" style="margin-top:10px; width:100%; padding:10px; background:#17a2b8; color:#fff; border:none; border-radius:5px;">📦 ZIP出力</button>
+</div>
+
+<script src="./app.js"></script>
+</body>
+</html>
