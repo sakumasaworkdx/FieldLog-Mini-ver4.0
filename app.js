@@ -1,68 +1,123 @@
-<!doctype html>
-<html lang="ja">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>FieldLog v4.0 Ultra</title>
-  <style>
-    body { background:#000; color:#fff; font-family:sans-serif; margin:0; padding:10px; }
-    .card { background:#111; border:1px solid #333; padding:15px; border-radius:12px; margin-bottom:15px; }
-    .btn-main { width:100%; border-radius:12px; border:none; color:white; cursor:pointer; display:flex; align-items:center; justify-content:center; margin-bottom:12px; font-weight:bold; }
-    .photo-btn { background:#00bb55; height:100px; font-size:20px; }
-    .geo-btn { background:#007bff; height:85px; font-size:18px; }
-    .btn-save { background:#dc3545; height:90px; font-size:24px; }
-    .geo-info-box { background:#000; color:#0f0; padding:15px; border-radius:8px; font-family:monospace; line-height:1.6; border:1px solid #333; margin-bottom:15px; }
-    .input-field { width:100%; background:#222; color:#fff; border:1px solid #444; padding:14px; border-radius:8px; margin-bottom:10px; font-size:16px; box-sizing:border-box; }
-    table { width:100%; border-collapse:collapse; font-size:12px; }
-    td { padding:10px; border-bottom:1px solid #333; }
-  </style>
-</head>
-<body>
-  <main style="max-width:500px; margin:0 auto;">
-    <details class="card">
-      <summary style="cursor:pointer; color:#aaa;">⚙️ CSV読込 (A:地点, B:小区分, C:項目)</summary>
-      <input id="listCsvInput" type="file" accept=".csv" style="margin-top:10px; width:100%;">
-    </details>
+const $ = (id) => document.getElementById(id);
+let db, currentGeo = null, currentFile = null, currentHeading = null, currentDirName = "-", liveHeading = null;
 
-    <section class="card">
-      <label class="btn-main photo-btn">
-        <input id="photoInput" type="file" accept="image/*" capture="environment" style="display:none;">
-        <span style="font-size:35px; margin-right:15px;">📷</span> 写真を撮る <span id="photoCheck"></span>
-      </label>
+// IndexedDB
+const req = indexedDB.open("offline_survey_pwa_db", 2);
+req.onsuccess = (e) => { db = e.target.result; renderTable(); loadLists(); };
 
-      <button id="btnGeo" class="btn-main geo-btn" type="button">
-        <span style="font-size:30px; margin-right:15px;">📍</span> 位置・方位を記録 <span id="geoCheck"></span>
-      </button>
+const getDir = (deg) => {
+  if (deg === null) return "-";
+  return ["北","北北東","北東","東北東","東","東南東","南東","南南東","南","南南西","南西","西南西","西","西北西","北西","北北西"][Math.round(deg / 22.5) % 16];
+};
 
-      <div id="previewContainer" style="text-align:center; display:none; margin-bottom:15px;">
-        <img id="imgPreview" style="max-width:100%; border-radius:8px;">
-      </div>
+// リアルタイム
+navigator.geolocation.watchPosition(p => {
+  currentGeo = p;
+  $("liveGPS").textContent = `${p.coords.latitude.toFixed(4)},${p.coords.longitude.toFixed(4)}`;
+}, null, {enableHighAccuracy:true});
 
-      <div class="geo-info-box">
-        <div style="color:#ff0; font-size:11px; margin-bottom:8px;">[ LIVE: <span id="liveGPS">-</span> / <span id="liveHeading">-</span> ]</div>
-        緯度（記録）: <span id="lat">-</span><br>
-        経度（記録）: <span id="lng">-</span><br>
-        方位（記録）: <span id="heading">-</span>
-      </div>
+window.addEventListener("deviceorientationabsolute", (e) => {
+  let h = e.webkitCompassHeading || (360 - e.alpha);
+  if (h !== undefined) { liveHeading = Math.round(h); $("liveHeading").textContent = liveHeading + "°"; }
+}, true);
 
-      <select id="selLocation" class="input-field"><option value="">地点を選択</option></select>
-      <select id="selSubLocation" class="input-field"><option value="">小区分を選択</option></select>
-      <select id="selItem" class="input-field"><option value="">項目を選択</option></select>
-      <textarea id="memo" class="input-field" style="height:80px;" placeholder="備考"></textarea>
-      
-      <button id="btnSave" class="btn-save btn-main">💾 データを保存</button>
-    </section>
+// 記録ボタン
+$("btnGeo").onclick = () => {
+  if(!currentGeo) return alert("GPS受信中");
+  $("lat").textContent = currentGeo.coords.latitude.toFixed(6);
+  $("lng").textContent = currentGeo.coords.longitude.toFixed(6);
+  currentHeading = liveHeading;
+  currentDirName = getDir(currentHeading);
+  $("heading").textContent = `${currentHeading}° (${currentDirName})`;
+  $("geoCheck").textContent = "✅";
+};
 
-    <section class="card">
-      <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-        <button id="btnDownloadAll" style="background:#007bff; color:white; border:none; padding:12px; border-radius:8px; font-weight:bold;">📦 一括DL</button>
-        <button id="btnDeleteAll" style="background:#600; color:white; border:none; padding:12px; border-radius:8px;">⚠️ 全削除</button>
-      </div>
-      <table id="list"></table>
-    </section>
-  </main>
+// CSV読み込み (単純ABC列)
+$("listCsvInput").onchange = async (e) => {
+  const file = e.target.files[0];
+  const text = await file.text();
+  const rows = text.split(/\r?\n/).map(r => r.trim()).filter(r => r !== "");
+  const tx = db.transaction("lists", "readwrite");
+  const store = tx.objectStore("lists");
+  await store.clear();
+  rows.forEach((row, idx) => {
+    const c = row.split(",").map(v => v.replace(/["']/g, "").trim());
+    store.put({ id: idx, a: c[0]||"", b: c[1]||"", c: c[2]||"" });
+  });
+  tx.oncomplete = () => { alert("読込完了"); loadLists(); };
+};
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-XMV0XIs27v6M7pMTL7yVofz8E/D9p9Odc6A16W4V9p2H8H3W6VbE2y1YvTz1m0M8m8Y4T/8Y+T/8Y+T/8Y+T/w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="./app.js"></script>
-</body>
-</html>
+async function loadLists() {
+  if (!db) return;
+  db.transaction("lists", "readonly").objectStore("lists").getAll().onsuccess = (e) => {
+    const d = e.target.result;
+    const upd = (id, vals, lbl) => {
+      $(id).innerHTML = `<option value="">${lbl}</option>` + [...new Set(vals)].filter(v=>v).map(v=>`<option value="${v}">${v}</option>`).join("");
+    };
+    upd("selLocation", d.map(x=>x.a), "地点を選択");
+    upd("selSubLocation", d.map(x=>x.b), "小区分を選択");
+    upd("selItem", d.map(x=>x.c), "項目を選択");
+  };
+}
+
+// 写真
+$("photoInput").onchange = (e) => {
+  currentFile = e.target.files[0];
+  if(currentFile) {
+    $("photoCheck").textContent = "✅";
+    $("imgPreview").src = URL.createObjectURL(currentFile);
+    $("previewContainer").style.display = "block";
+  }
+};
+
+// 保存
+$("btnSave").onclick = () => {
+  if (!$("selLocation").value) return alert("地点を選んでください");
+  const id = Date.now();
+  const rec = {
+    id: id, createdAt: new Date().toISOString(),
+    lat: $("lat").textContent, lng: $("lng").textContent,
+    heading: currentHeading, headingName: currentDirName,
+    location: $("selLocation").value, subLocation: $("selSubLocation").value,
+    item: $("selItem").value, memo: $("memo").value,
+    photoName: `img_${id}.jpg`, photoBlob: currentFile || new Blob([])
+  };
+  db.transaction("surveys", "readwrite").objectStore("surveys").put(rec).onsuccess = () => {
+    alert("保存完了");
+    $("photoCheck").textContent = ""; $("memo").value = "";
+    $("previewContainer").style.display = "none";
+    renderTable();
+  };
+};
+
+// 一括DL（JSZipチェック強化）
+$("btnDownloadAll").onclick = async () => {
+  if (typeof JSZip === "undefined") {
+    alert("エラー: JSZipライブラリが読み込まれていません。一度ネットに繋いで更新するか、jszip.min.jsのパスを確認してください。");
+    return;
+  }
+  db.transaction("surveys", "readonly").objectStore("surveys").getAll().onsuccess = async (e) => {
+    const data = e.target.result;
+    if (!data.length) return alert("データなし");
+    const zip = new JSZip();
+    let csv = "\ufeff日時,緯度,経度,方位,地点,小区分,項目,備考,写真\n";
+    for (const r of data) {
+      csv += `${r.createdAt},${r.lat},${r.lng},${r.headingName},${r.location},${r.subLocation},${r.item},"${r.memo}",${r.photoName}\n`;
+      if (r.photoBlob && r.photoBlob.size > 0) zip.file(r.photoName, r.photoBlob);
+    }
+    zip.file("data.csv", csv);
+    const blob = await zip.generateAsync({type:"blob"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `data_${Date.now()}.zip`;
+    a.click();
+  };
+};
+
+function renderTable() {
+  db.transaction("surveys", "readonly").objectStore("surveys").getAll().onsuccess = (e) => {
+    $("list").innerHTML = e.target.result.sort((a,b)=>b.id-a.id).map(r => `
+      <tr><td>${r.location}</td><td style="color:#0f0;">${r.photoBlob.size>0?"◯":"-"}</td></tr>
+    `).join("");
+  };
+}
