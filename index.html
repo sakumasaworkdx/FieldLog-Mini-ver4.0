@@ -5,75 +5,56 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
   <link rel="stylesheet" href="./styles.css" />
   <link rel="manifest" href="./manifest.webmanifest" />
-  <title>Offline Survey v2.0</title>
-  <style>
-    body { font-family: sans-serif; margin: 0; background: #f0f2f5; color: #333; }
-    .container { padding: 10px; max-width: 600px; margin: auto; }
-    .card { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .btn-main { display: block; width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
-    .geo-btn { background: #4caf50; color: white; }
-    .photo-btn { background: #2196f3; color: white; text-align: center; }
-    .btn-save { background: #ff9800; color: white; width: 100%; padding: 15px; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; }
-    .input-field { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-    .small-info { font-size: 11px; color: #666; background: #f9f9f9; padding: 8px; border-radius: 4px; border: 1px solid #eee; margin: 10px 0; }
-    .item { display: flex; border-bottom: 1px solid #eee; padding: 10px 0; align-items: flex-start; }
-    .thumb { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; margin-right: 12px; }
-    .kv { flex: 1; font-size: 12px; }
-    .mono { font-family: monospace; }
-  </style>
+  <title>FieldLog v2.0 Final Rebuild</title>
 </head>
 <body>
   <div class="container">
     <div class="card">
-      <div id="swState" style="font-size:10px; color:#999;"></div>
-      <button id="btnInstall" style="display:none; background: #333; color: white; padding: 5px; width: 100%; border-radius: 4px; border: none; margin-bottom: 10px;">アプリをインストール</button>
+      <div id="swState" style="font-size:10px; color:gray;"></div>
+      <button id="btnInstall" style="display:none;">インストール</button>
       
-      <div style="background:#e3f2fd; padding:10px; border-radius:8px; border:1px solid #bbdefb;">
-        <strong style="font-size:12px;">📄 地点/項目リスト(CSV)</strong>
-        <input type="file" id="listCsvInput" accept=".csv" style="display:block; margin:5px 0; font-size:12px;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span id="listStatus" style="font-size:11px; color:#1565c0;"></span>
-          <button id="btnClearLists" style="font-size:10px; padding:2px 6px;">リスト消去</button>
+      <div style="background:#f0f7ff; padding:10px; border-radius:8px; border:1px solid #bcd; margin-bottom:15px;">
+        <input type="file" id="listCsvInput" accept=".csv" style="font-size:12px; width:100%;">
+        <div style="display:flex; justify-content:space-between; margin-top:5px;">
+          <span id="listStatus" style="font-size:10px;"></span>
+          <button id="btnClearLists" style="font-size:10px;">リスト消去</button>
         </div>
       </div>
 
-      <button id="btnGeo" class="btn-main geo-btn">📍 GPS取得</button>
-      <div class="small-info">
-        緯度: <span id="lat" class="mono">-</span><br>
-        経度: <span id="lng" class="mono">-</span><br>
-        精度: <span id="acc" class="mono">-</span> m
-      </div>
+      <button id="btnGeo" class="btn-main geo-btn" style="background:#4caf50; color:white; width:100%; padding:15px; border:none; border-radius:8px; font-weight:bold;">📍 GPS・方位取得</button>
+      
+      <div class="geo-info" style="font-size:12px; background:#eee; padding:10px; border-radius:5px; margin:10px 0;">
+        緯度: <span id="lat">-</span><br>
+        経度: <span id="lng">-</span><br>
+        精度: <span id="acc">-</span> m<br>
+        <strong>方位: <span id="heading">-</span>°</strong> </div>
 
-      <label class="btn-main photo-btn">
+      <label class="btn-main photo-btn" style="background:#2196f3; color:white; display:block; text-align:center; padding:15px; border-radius:8px; cursor:pointer;">
         📷 写真撮影 / 選択
         <input id="photoInput" type="file" accept="image/*" capture="environment" style="display:none;">
       </label>
-      <img id="preview" style="max-width:100%; border-radius:8px; margin:10px 0;">
-      <div class="small-info">
-        ファイル名案: <span id="autoName" class="mono">-</span><br>
-        取得時刻: <span id="ts" class="mono">-</span>
+      <img id="preview" style="max-width:100%; margin:10px 0; border-radius:8px;">
+      <div style="font-size:11px; color:#666; margin-bottom:10px;">
+        生成名: <span id="autoName">-</span> / 時刻: <span id="ts">-</span>
       </div>
 
-      <select id="selLocation" class="input-field"></select>
-      <select id="selLocation2" class="input-field"></select>
-      <select id="selItem" class="input-field"></select>
+      <select id="selLocation" class="input-field" style="width:100%; padding:10px; margin-bottom:5px;"></select>
+      <select id="selLocation2" class="input-field" style="width:100%; padding:10px; margin-bottom:5px;"></select>
+      <select id="selItem" class="input-field" style="width:100%; padding:10px; margin-bottom:5px;"></select>
+      <textarea id="memo" class="input-field" placeholder="備考" style="width:100%; height:50px; padding:10px; margin-bottom:5px;"></textarea>
+      <textarea id="memo2" class="input-field" placeholder="備考2" style="width:100%; height:50px; padding:10px; margin-bottom:10px;"></textarea>
       
-      <textarea id="memo" class="input-field" placeholder="備考"></textarea>
-      <textarea id="memo2" class="input-field" placeholder="備考2"></textarea>
-      
-      <button id="btnSave" class="btn-save">💾 データを保存</button>
+      <button id="btnSave" style="width:100%; padding:15px; background:#ff9800; color:white; border:none; border-radius:8px; font-weight:bold;">💾 データを保存</button>
     </div>
 
     <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <strong>📊 履歴 (<span id="count">0</span> 件)</strong>
-        <button id="btnExportZip" style="background:#1976d2; color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:bold; font-size:12px;">📦 ZIP出力</button>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <strong>📊 履歴 (<span id="count">0</span>件)</strong>
+        <button id="btnExportZip" style="background:#2196f3; color:white; border:none; padding:8px 12px; border-radius:5px; font-size:12px;">📦 ZIP出力</button>
       </div>
-      <div id="exportStatus" style="font-size:11px; color:#1976d2; margin-bottom:10px;"></div>
-      
-      <div id="list" style="border-top:1px solid #eee;"></div>
-
-      <button id="btnClear" style="margin-top:20px; width:100%; background:#c62828; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;">🚨 全データを完全に削除</button>
+      <div id="exportStatus" style="font-size:11px; color:blue; margin:5px 0;"></div>
+      <div id="list" style="margin-top:10px; border-top:1px solid #eee;"></div>
+      <button id="btnClear" style="margin-top:20px; width:100%; background:#f44336; color:white; border:none; padding:10px; border-radius:8px;">🚨 全データ削除</button>
     </div>
   </div>
 
