@@ -3,76 +3,85 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <title>Offline Survey v2.0 Professional</title>
+  <link rel="stylesheet" href="./styles.css?v=111" />
+  <title>FieldLog Mini v3.8</title>
   <style>
-    body { font-family: sans-serif; background: #e9ecef; margin: 0; padding: 10px; }
-    .card { background: #fff; border-radius: 12px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); margin-bottom:15px; }
-    /* CSV読込：濃い青に白文字（視認性重視） */
-    .config-panel { background: #0d47a1; color: #fff; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
-    /* リアルタイム表示：黒に緑（常に動く） */
-    .live-display { background: #000; color: #0f0; padding: 12px; border-radius: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-family: monospace; border: 2px solid #444; }
-    .val-large { font-size: 24px; font-weight: bold; }
-    .btn { display: block; width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; }
-    .btn-fix { background: #28a745; color: #fff; }
-    .btn-save { background: #ff9800; color: #fff; font-size: 20px; }
-    /* 写真プレビュー：適正サイズ横並び */
-    .photo-row { display: flex; gap: 10px; align-items: center; background: #f1f3f5; padding: 10px; border-radius: 8px; margin: 10px 0; }
-    #preview { width: 120px; height: 90px; object-fit: contain; border: 1px solid #adb5bd; background: #fff; display: none; }
-    .field { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
+    /* プレビューを横に並べるための調整 */
+    .photo-flex { display: flex; gap: 10px; align-items: center; margin-bottom: 15px; }
+    #previewContainer { flex: 1; margin-bottom: 0 !important; }
+    #imgPreview { max-height: 100px; width: auto; }
+    /* CSVエリアの視認性向上 */
+    .settings-card { background: #002244; border-color: #004488; }
+    summary { font-weight: bold; color: #fff; cursor: pointer; }
   </style>
 </head>
 <body>
+  <main class="container">
+    <details class="card settings-card">
+      <summary>⚙️ CSV読み込み (地点,小区分,項目)</summary>
+      <input id="listCsvInput" type="file" accept=".csv" style="margin-top:10px; background:#fff; color:#000;" />
+    </details>
 
-<div class="card">
-  <div class="config-panel">
-    <strong style="font-size:14px;">📄 地点/項目リスト読込(CSV)</strong>
-    <input type="file" id="csvIn" accept=".csv" style="width:100%; margin-top:8px; background:#fff;">
-    <div id="csvSt" style="font-size:12px; color:#ffeb3b; margin-top:5px; font-weight:bold;">未読込</div>
-  </div>
+    <section class="card">
+      <div class="action-grid">
+        <label class="btn-main photo-btn">
+          <input id="photoInput" type="file" accept="image/*" capture="environment" style="display:none;">
+          <span class="icon">📷</span>
+          <span class="label">写真 <span id="photoCheck"></span></span>
+        </label>
+        <button id="btnGeo" class="btn-main geo-btn" type="button">
+          <span class="icon">📍</span>
+          <span class="label">位置・方位確定 <span id="geoCheck"></span></span>
+        </button>
+      </div>
 
-  <div class="live-display">
-    <div style="text-align:center;">
-      方位<br><span id="h_live" class="val-large">-</span>°<br><span id="d_live" style="color:#fff;">-</span>
-    </div>
-    <div style="font-size:12px;">
-      精度: <span id="a_live">-</span>m<br>
-      緯度: <span id="la_live">-</span><br>
-      経度: <span id="lo_live">-</span>
-    </div>
-  </div>
-  
-  <button id="btnFix" class="btn btn-fix">📍 この位置・方位で確定</button>
+      <div class="photo-flex">
+        <div id="previewContainer" style="display:none; text-align:center;">
+          <img id="imgPreview">
+        </div>
+      </div>
 
-  <div id="fixedDisplay" style="font-size:11px; color:#d32f2f; margin-top:5px; font-weight:bold;">
-    確定値: <span id="la_val">-</span>, <span id="lo_val">-</span> (<span id="h_val">-</span>°)
-  </div>
+      <div class="geo-info">
+        <div style="color: #ffff00; font-size: 11px; margin-bottom: 5px; border-bottom: 1px solid #333;">
+          [LIVE] 方位: <span id="liveHeading">-</span> / GPS: <span id="liveGPS">-</span>
+        </div>
+        確定緯度: <span id="lat">-</span> / 確定経度: <span id="lng">-</span><br>
+        確定方位: <span id="heading">-</span>
+      </div>
 
-  <div class="photo-row">
-    <label style="flex:1; background:#007bff; color:#fff; padding:20px 10px; border-radius:8px; text-align:center; font-weight:bold; cursor:pointer;">
-      📷 写真撮影
-      <input type="file" id="pIn" accept="image/*" capture="environment" style="display:none;">
-    </label>
-    <img id="preview">
-    <div id="noPhoto" style="width:120px; text-align:center; font-size:11px; color:#999;">未撮影</div>
-  </div>
-  
-  <div id="info" style="font-size:10px; color:#666; margin-bottom:10px;">ファイル名: - / 時刻: -</div>
+      <select id="selLocation" class="input-field"><option value="">地点を選択</option></select>
+      <select id="selSubLocation" class="input-field"><option value="">小区分を選択</option></select>
+      <select id="selItem" class="input-field"><option value="">項目を選択</option></select>
+      <textarea id="memo" class="input-field memo-area" placeholder="備考"></textarea>
+      
+      <button id="btnSave" class="btn-save" type="button">💾 データを保存</button>
+    </section>
 
-  <select id="s1" class="field"><option value="">地点を選択(CSVを読込)</option></select>
-  <select id="s2" class="field"></select>
-  <select id="s3" class="field"></select>
-  <textarea id="m1" class="field" placeholder="備考"></textarea>
-  <textarea id="m2" class="field" placeholder="備考2"></textarea>
-  
-  <button id="btnSave" class="btn btn-save">💾 データを保存</button>
-</div>
-
-<div class="card">
-  <strong>📊 履歴 (<span id="count">0</span>件)</strong>
-  <div id="list" style="margin-top:10px; border-top:1px solid #eee; max-height:200px; overflow-y:auto;"></div>
-  <button id="btnExport" style="margin-top:10px; width:100%; padding:10px; background:#17a2b8; color:#fff; border:none; border-radius:5px;">📦 ZIP出力</button>
-</div>
-
-<script src="./app.js"></script>
+    <section class="card history-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h2 style="font-size:14px; margin:0;">📊 保存履歴</h2>
+        <div style="display:flex; gap:8px;">
+            <button id="btnDownloadAll" class="btn-blue" style="padding:5px 10px; font-size:12px; border-radius:5px;">📦 一括DL</button>
+            <button id="btnDeleteAll" style="padding:5px 10px; font-size:12px; border-radius:5px; background:#660000; color:white; border:none; cursor:pointer;">⚠️ 全削除</button>
+        </div>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:30%;">地点</th>
+              <th style="width:25%;">小区分</th>
+              <th style="width:25%;">項目</th>
+              <th style="width:10%;">写</th>
+              <th style="width:10%;">G</th>
+            </tr>
+          </thead>
+          <tbody id="list"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <script src="../jszip.min.js"></script>
+  <script src="./app.js?v=111"></script>
 </body>
 </html>
